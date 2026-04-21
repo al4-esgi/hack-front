@@ -5,6 +5,7 @@ import "./index.css";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import appRouter from "./routes/router";
 import { StaleTimes } from "./constants/query.constant";
+import { UpdatePrompt } from "./components/UpdatePrompt";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -21,6 +22,7 @@ createRoot(document.getElementById("root")!).render(
       <Suspense fallback={null}>
         <RouterProvider router={appRouter} />
       </Suspense>
+      <UpdatePrompt />
     </QueryClientProvider>
   </StrictMode>,
 );
