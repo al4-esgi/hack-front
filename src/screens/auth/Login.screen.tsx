@@ -1,4 +1,5 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native'
+import { useState } from 'react'
+import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native'
 import { useTranslation } from 'react-i18next'
 import type { NativeStackScreenProps } from '@react-navigation/native-stack'
 import { AppRoutes } from '../../constants/routes.constant'
@@ -10,20 +11,58 @@ type Props = NativeStackScreenProps<RootStackParamList, typeof AppRoutes.LOGIN>
 export default function Login({ navigation }: Props) {
   const { t } = useTranslation(['auth'])
   const setToken = useAuthStore((state) => state.setToken)
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+
+  const handlePasswordLogin = () => {
+    if (!email.trim() || !password.trim()) {
+      return
+    }
+
+    setToken('demo-token-password')
+    navigation.replace(AppRoutes.ROOT)
+  }
+
+  const handleGoogleLogin = () => {
+    setToken('demo-token-google')
+    navigation.replace(AppRoutes.ROOT)
+  }
 
   return (
     <View style={styles.container}>
       <Text style={styles.title}>{t('login.title', { ns: 'auth' })}</Text>
       <Text style={styles.subtitle}>{t('login.subtitle', { ns: 'auth' })}</Text>
 
-      <Pressable style={styles.primaryButton} onPress={() => setToken('demo-token')}>
-        <Text style={styles.primaryButtonLabel}>{t('login.submit', { ns: 'auth' })}</Text>
+      <TextInput
+        value={email}
+        onChangeText={setEmail}
+        autoCapitalize="none"
+        keyboardType="email-address"
+        placeholder={t('login.email', { ns: 'auth' })}
+        placeholderTextColor="#888888"
+        style={styles.input}
+      />
+      <TextInput
+        value={password}
+        onChangeText={setPassword}
+        secureTextEntry
+        placeholder={t('login.password', { ns: 'auth' })}
+        placeholderTextColor="#888888"
+        style={styles.input}
+      />
+
+      <Pressable style={styles.primaryButton} onPress={handlePasswordLogin}>
+        <Text style={styles.primaryButtonLabel}>
+          {t('login.submit', { ns: 'auth' })} (email/password)
+        </Text>
       </Pressable>
 
-      <Pressable style={styles.linkButton} onPress={() => navigation.navigate(AppRoutes.REGISTER)}>
-        <Text style={styles.linkLabel}>
-          {t('login.noAccount', { ns: 'auth' })} {t('login.register', { ns: 'auth' })}
-        </Text>
+      <Pressable style={styles.secondaryButton} onPress={handleGoogleLogin}>
+        <Text style={styles.secondaryButtonLabel}>Continuer avec Google</Text>
+      </Pressable>
+
+      <Pressable style={styles.registerButton} onPress={() => navigation.navigate(AppRoutes.REGISTER)}>
+        <Text style={styles.registerLabel}>{t('login.register', { ns: 'auth' })}</Text>
       </Pressable>
     </View>
   )
@@ -45,7 +84,16 @@ const styles = StyleSheet.create({
   subtitle: {
     fontSize: 16,
     color: '#555555',
-    marginBottom: 24,
+    marginBottom: 14,
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: '#dddddd',
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 11,
+    backgroundColor: '#ffffff',
+    color: '#111111',
   },
   primaryButton: {
     paddingHorizontal: 16,
@@ -59,11 +107,25 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
   },
-  linkButton: {
-    paddingVertical: 8,
+  secondaryButton: {
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#111111',
+    backgroundColor: '#ffffff',
   },
-  linkLabel: {
-    color: '#222222',
+  secondaryButtonLabel: {
+    color: '#111111',
+    textAlign: 'center',
+    fontWeight: '600',
+  },
+  registerButton: {
+    paddingVertical: 6,
+  },
+  registerLabel: {
+    fontSize: 13,
+    color: '#333333',
     textAlign: 'center',
   },
 })

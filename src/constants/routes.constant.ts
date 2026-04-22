@@ -1,6 +1,5 @@
 export const AppRoutes = {
-  ROOT: '/',
-  HOME: 'Home',
+  ROOT: 'MainTabs',
   LOGIN: 'Login',
   REGISTER: 'Register',
   NOT_FOUND: 'NotFound',
