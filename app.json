@@ -30,6 +30,9 @@
         "projectId": "8f376b54-caa7-490c-b902-243774d3b42e"
       }
     },
-    "owner": "cmbhugos-organization"
+    "owner": "cmbhugos-organization",
+    "plugins": [
+      "expo-font"
+    ]
   }
 }

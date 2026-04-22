@@ -175,9 +175,10 @@ module.exports = {
         },
       },
       fontFamily: {
-        heading: undefined,
-        body: undefined,
+        heading: ['Figtree', 'System', '-apple-system', 'sans-serif'],
+        body: ['Figtree', 'System', '-apple-system', 'sans-serif'],
         mono: undefined,
+        figtree: ['Figtree', 'System', '-apple-system', 'sans-serif'],
         jakarta: ['var(--font-plus-jakarta-sans)'],
         roboto: ['var(--font-roboto)'],
         code: ['var(--font-source-code-pro)'],
@@ -203,4 +204,4 @@ module.exports = {
       },
     },
   },
-};
+}
