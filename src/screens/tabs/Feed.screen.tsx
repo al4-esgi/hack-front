@@ -1,4 +1,8 @@
-import { ScrollView, StyleSheet, Text, View } from 'react-native'
+import { ScrollView, StyleSheet, View } from 'react-native'
+import { Button, ButtonText } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
+import { Heading } from '@/components/ui/heading'
+import { Text } from '@/components/ui/text'
 
 const FEED_ITEMS = [
   {
@@ -21,6 +25,9 @@ const FEED_ITEMS = [
 export default function FeedScreen() {
   return (
     <ScrollView contentContainerStyle={styles.container}>
+      <Button>
+        <ButtonText>Click me</ButtonText>
+      </Button>
       <Text style={styles.title}>Feed</Text>
       <Text style={styles.subtitle}>Ta home principale avec les dernières recommandations.</Text>
 
@@ -32,6 +39,12 @@ export default function FeedScreen() {
           </View>
         ))}
       </View>
+      <Card size="lg" variant="elevated" className="m-3">
+        <Heading size="md" className="mb-1">
+          Quick Start
+        </Heading>
+        <Text size="sm">Start building your next project in minutes</Text>
+      </Card>
     </ScrollView>
   )
 }
