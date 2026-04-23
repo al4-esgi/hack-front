@@ -1,10 +1,11 @@
 import { create } from 'zustand'
-import type { AwardCode, GetRestaurantsParams, RestaurantSortBy } from '../types/restaurant'
-import type { SortDirection } from '../types/pagination'
+import type { SortDirection } from '../types/pagination.type'
+import { GetSearchParams, SearchSortBy } from '../types/search.type'
+import { AwardCode } from '../types/restaurant.type'
 
-interface RestaurantsState {
-  params: GetRestaurantsParams
-  setParams: (params: Partial<GetRestaurantsParams>) => void
+interface SearchState {
+  params: GetSearchParams
+  setParams: (params: Partial<GetSearchParams>) => void
   setSearch: (search: string) => void
   setCountry: (countryId: number | undefined) => void
   setCity: (cityId: number | undefined) => void
@@ -14,20 +15,20 @@ interface RestaurantsState {
   setStars: (min?: number, max?: number) => void
   setPriceLevel: (min?: number, max?: number) => void
   setGreenStar: (greenStar: boolean | undefined) => void
-  setSort: (sortBy?: RestaurantSortBy, sortDirection?: SortDirection) => void
+  setSort: (sortBy?: SearchSortBy, sortDirection?: SortDirection) => void
   setPage: (page: number) => void
   setPageSize: (pageSize: number) => void
   clearFilters: () => void
 }
 
-const defaultParams: GetRestaurantsParams = {
+const defaultParams: GetSearchParams = {
   page: 0,
   pageSize: 20,
   sortBy: 'name',
   sortDirection: 'ASC',
 }
 
-export const useRestaurantStore = create<RestaurantsState>((set) => ({
+export const useSearchStore = create<SearchState>((set) => ({
   params: { ...defaultParams },
 
   setParams: (newParams) =>

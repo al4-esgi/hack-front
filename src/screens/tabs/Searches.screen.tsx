@@ -1,26 +1,22 @@
 import { useState } from 'react'
 import { FlatList, StyleSheet, Text, View } from 'react-native'
 import { SearchBar } from '@/components/ui/search-bar'
-import { useRestaurants, useCuisines, useFacilities } from '../../hooks/useRestaurants'
-import { useRestaurantStore } from '../../stores/restaurant.store'
-import type { Restaurant } from '../../types/restaurant'
+import { useSearch, useCities, useCountries } from '@/src/hooks/useSearch'
+import { useSearchStore } from '../../stores/search.store'
+import type { Restaurant } from '../../types/restaurant.type'
 
 export default function SearchesScreen() {
   const [query, setQuery] = useState('')
-  const setSearch = useRestaurantStore((state) => state.setSearch)
-  const { data: restaurants, isLoading: isLoadingRestaurants } = useRestaurants()
-  const { data: cuisines, isLoading: isLoadingCuisines } = useCuisines(query || undefined, 5)
-  const { data: facilities, isLoading: isLoadingFacilities } = useFacilities(query || undefined, 5)
+  const setSearch = useSearchStore((state) => state.setSearch)
+
+  const { data: restaurants, isLoading: isLoadingRestaurants } = useSearch()
+  const { data: countries } = useCountries()
+  const { data: cities } = useCities()
 
   const handleSearch = (text: string) => {
     setQuery(text)
     setSearch(text)
   }
-
-  const hasResults =
-    (restaurants && restaurants.restaurants.length > 0) ||
-    (cuisines && cuisines.length > 0) ||
-    (facilities && facilities.length > 0)
 
   const renderRestaurant = ({ item }: { item: Restaurant }) => (
     <View style={styles.resultCard}>
@@ -34,9 +30,7 @@ export default function SearchesScreen() {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Recherches</Text>
-      <Text style={styles.subtitle}>
-        Lance une recherche et retrouve des suggestions rapides.
-      </Text>
+      <Text style={styles.subtitle}>Lance une recherche et retrouve des suggestions rapides.</Text>
 
       <SearchBar
         value={query}
@@ -44,38 +38,22 @@ export default function SearchesScreen() {
         placeholder="Rechercher un lieu, une catégorie..."
       />
 
-      {isLoadingRestaurants || isLoadingCuisines || isLoadingFacilities ? (
+      {isLoadingRestaurants ? (
         <Text style={styles.loadingText}>Chargement...</Text>
       ) : query.trim() === '' ? (
-        <FlatList
-          data={[]}
-          keyExtractor={(item) => item}
-          renderItem={({ item }) => (
-            <View style={styles.resultCard}>
-              <Text style={styles.resultLabel}>{item}</Text>
-            </View>
-          )}
-          ListEmptyComponent={
-            <Text style={styles.emptyState}>Aucun résultat pour cette recherche.</Text>
-          }
-        />
-      ) : hasResults ? (
         <FlatList
           data={restaurants?.restaurants || []}
           keyExtractor={(item) => item.id.toString()}
           renderItem={renderRestaurant}
-          ListHeaderComponent={
-            cuisines && cuisines.length > 0 ? (
-              <View style={styles.section}>
-                <Text style={styles.sectionTitle}>Cuisines</Text>
-                {cuisines.map((cuisine) => (
-                  <View key={cuisine.id} style={styles.resultCard}>
-                    <Text style={styles.resultLabel}>{cuisine.name}</Text>
-                  </View>
-                ))}
-              </View>
-            ) : null
+          ListEmptyComponent={
+            <Text style={styles.emptyState}>Aucun résultat pour cette recherche.</Text>
           }
+        />
+      ) : restaurants?.restaurants && restaurants.restaurants.length > 0 ? (
+        <FlatList
+          data={restaurants.restaurants}
+          keyExtractor={(item) => item.id.toString()}
+          renderItem={renderRestaurant}
           ListEmptyComponent={
             <Text style={styles.emptyState}>Aucun restaurant trouvé pour cette recherche.</Text>
           }

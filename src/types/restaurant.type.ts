@@ -1,5 +1,3 @@
-import type { QueryParams } from './pagination'
-
 export enum AwardCode {
   MichelinStar = 'MICHELIN_STAR',
   BibGourmand = 'BIB_GOURMAND',
@@ -13,18 +11,6 @@ export enum PriceLevel {
   VeryExpensive = 4,
 }
 
-export type RestaurantSortBy = 'name' | 'price' | 'rating'
-
-export interface CountryFilter {
-  id: number
-  name: string
-}
-
-export interface CityFilter {
-  id: number
-  name: string
-}
-
 export interface CuisineFilter {
   id: number
   name: string
@@ -33,6 +19,11 @@ export interface CuisineFilter {
 export interface FacilityFilter {
   id: number
   name: string
+}
+
+export interface RestaurantDetail extends Restaurant {
+  cityId: number
+  countryId: number
 }
 
 export interface Restaurant {
@@ -54,24 +45,4 @@ export interface Restaurant {
   cuisines: string[]
   facilities: string[]
   priceLevel: PriceLevel
-}
-
-export interface RestaurantDetail extends Restaurant {
-  cityId: number
-  countryId: number
-}
-
-export interface GetRestaurantsParams extends QueryParams {
-  sortBy?: RestaurantSortBy
-  search?: string
-  countryId?: number
-  cityId?: number
-  cuisineIds?: number[]
-  facilityIds?: number[]
-  awardCode?: AwardCode
-  minStars?: number
-  maxStars?: number
-  greenStar?: boolean
-  minPriceLevel?: number
-  maxPriceLevel?: number
 }
