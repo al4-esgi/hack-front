@@ -5,23 +5,43 @@ import * as Location from 'expo-location'
 import { FilterChip } from './FilterChip'
 import { SearchBar } from './SearchBar'
 import { useSearchStore } from '@/src/stores/search.store'
+import { useCountries, useCities } from '@/src/hooks/useSearch'
 import { SearchType } from '@/src/types/search.type'
 import { AwardCode } from '@/src/types/restaurant.type'
-import { colors, spacing, typography } from '@/src/app/theme/tokens'
+import { colors, radius, shadow, spacing, typography } from '@/src/app/theme/tokens'
 
 interface SearchFiltersProps {
   query: string
   onSearchChange: (text: string) => void
+  onSearchFocus?: () => void
   isLoading?: boolean
 }
 
-export function SearchFilters({ query, onSearchChange, isLoading }: SearchFiltersProps) {
+export function SearchFilters({ query, onSearchChange, onSearchFocus, isLoading }: SearchFiltersProps) {
   const { t } = useTranslation('search')
   const [showAdvanced, setShowAdvanced] = useState(false)
+  const [countrySearch, setCountrySearch] = useState('')
+  const [citySearch, setCitySearch] = useState('')
+  const [showCountryList, setShowCountryList] = useState(false)
+  const [showCityList, setShowCityList] = useState(false)
 
   const params = useSearchStore((state) => state.params)
   const setParams = useSearchStore((state) => state.setParams)
   const setSearch = useSearchStore((state) => state.setSearch)
+
+  // Autocomplete hooks - enabled when showing list
+  const { data: countries } = useCountries(countrySearch, 10, showCountryList || countrySearch.length > 0)
+  const { data: cities } = useCities(citySearch, 10, params.countryId, showCityList || citySearch.length > 0)
+
+  const handleCountryFocus = useCallback(() => {
+    setCountrySearch('')
+    setShowCountryList(true)
+  }, [])
+
+  const handleCityFocus = useCallback(() => {
+    setCitySearch('')
+    setShowCityList(true)
+  }, [])
 
   const handleSearch = useCallback(
     (text: string) => {
@@ -30,6 +50,11 @@ export function SearchFilters({ query, onSearchChange, isLoading }: SearchFilter
     },
     [onSearchChange, setSearch],
   )
+
+  const handleSearchFocus = useCallback(() => {
+    onSearchChange('')
+    setSearch('')
+  }, [onSearchChange, setSearch])
 
   const handleTypeToggle = useCallback(
     (type: SearchType) => {
@@ -115,7 +140,7 @@ export function SearchFilters({ query, onSearchChange, isLoading }: SearchFilter
 
   return (
     <View style={styles.container}>
-      <SearchBar value={query} onChangeText={handleSearch} placeholder={t('placeholder')} />
+      <SearchBar value={query} onChangeText={handleSearch} onFocus={handleSearchFocus} placeholder={t('placeholder')} />
 
       <View style={styles.chips}>
         <FilterChip
@@ -177,13 +202,88 @@ export function SearchFilters({ query, onSearchChange, isLoading }: SearchFilter
             contentContainerStyle={styles.advancedContent}
           >
             <View style={styles.filterSection}>
-              <Text style={styles.sectionTitle}>{t('filters.location')}</Text>
-              <SearchBar
-                value={params.location || ''}
-                onChangeText={(text) => setParams({ location: text || undefined })}
-                placeholder={t('filters.locationPlaceholder')}
-              />
+              <Text style={styles.sectionTitle}>{t('filters.country')}</Text>
+{params.countryId ? (
+                  <Pressable 
+                    style={styles.selectedChip} 
+                    onPress={() => {
+                      setParams({ countryId: undefined, cityId: undefined })
+                      setCountrySearch('')
+                      setCitySearch('')
+                      setShowCountryList(false)
+                      setShowCityList(false)
+                    }}
+                  >
+                  <Text style={styles.selectedChipLabel}>{countrySearch}</Text>
+                </Pressable>
+              ) : (
+                <SearchBar
+                  value={countrySearch}
+                  onChangeText={setCountrySearch}
+                  onFocus={handleCountryFocus}
+                  placeholder={t('filters.countryPlaceholder')}
+                />
+              )}
+              {!params.countryId && showCountryList && countries && countries.length > 0 && (
+                <View style={styles.countryList}>
+                  {countries.slice(0, 5).map((country: any) => (
+                    <Pressable
+                      key={country.id}
+                      style={styles.countryItem}
+                      onPress={() => {
+                        setParams({ countryId: country.id, cityId: undefined, lat: undefined, lng: undefined, radiusKm: undefined })
+                        setCountrySearch(country.name)
+                        setShowCountryList(false)
+                      }}
+                    >
+                      <Text style={styles.countryText}>{country.name}</Text>
+                    </Pressable>
+                  ))}
+                </View>
+              )}
             </View>
+
+            {params.countryId && (
+              <View style={styles.filterSection}>
+                <Text style={styles.sectionTitle}>{t('filters.city')}</Text>
+                {params.cityId ? (
+                  <Pressable 
+                    style={styles.selectedChip} 
+                    onPress={() => {
+                      setParams({ cityId: undefined })
+                      setCitySearch('')
+                      setShowCityList(false)
+                    }}
+                  >
+                    <Text style={styles.selectedChipLabel}>{citySearch}</Text>
+                  </Pressable>
+                ) : (
+                  <SearchBar
+                    value={citySearch}
+                    onChangeText={setCitySearch}
+                    onFocus={handleCityFocus}
+                    placeholder={t('filters.cityPlaceholder')}
+                  />
+                )}
+                {!params.cityId && showCityList && cities && cities.length > 0 && (
+                  <View style={styles.countryList}>
+                    {cities.slice(0, 5).map((city: any) => (
+                      <Pressable
+                        key={city.id}
+                        style={styles.countryItem}
+                        onPress={() => {
+                          setParams({ cityId: city.id, lat: undefined, lng: undefined, radiusKm: undefined })
+                          setCitySearch(city.name)
+                          setShowCityList(false)
+                        }}
+                      >
+                        <Text style={styles.countryText}>{city.name}</Text>
+                      </Pressable>
+                    ))}
+                  </View>
+                )}
+              </View>
+            )}
 
             <View style={styles.filterSection}>
               <Text style={styles.sectionTitle}>{t('filters.priceRange')}</Text>
@@ -322,6 +422,60 @@ const styles = StyleSheet.create({
     color: colors.primary,
     fontWeight: typography.fontWeight.medium,
   },
+  locationChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.byUniverse.purpleEngaged,
+    borderRadius: radius.full,
+    paddingHorizontal: spacing[3],
+    paddingVertical: spacing[1],
+    gap: spacing[1],
+    shadowColor: 'rgb(25, 25, 25)',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.12,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  locationChipText: {
+    fontSize: typography.fontSize.subText,
+    color: colors.backgroundPrimary,
+    fontWeight: typography.fontWeight.medium,
+  },
+  locationChipX: {
+    fontSize: typography.fontSize.body,
+    color: colors.backgroundPrimary,
+    fontWeight: typography.fontWeight.bold,
+  },
+  selectedChip: {
+    alignSelf: 'flex-start',
+    borderColor: colors.primary,
+    backgroundColor: 'rgba(189, 35, 51, 0.08)',
+    borderRadius: radius.full,
+    borderWidth: 1,
+    paddingHorizontal: spacing[2],
+    paddingVertical: spacing[1],
+  },
+  selectedChipLabel: {
+    fontSize: typography.fontSize.subText,
+    color: colors.primary,
+    fontWeight: typography.fontWeight.semibold,
+    textTransform: 'uppercase',
+    letterSpacing: 0.4,
+  },
+  addChip: {
+    alignSelf: 'flex-start',
+    backgroundColor: colors.backgroundSubtle,
+    borderWidth: 1,
+    borderColor: colors.borderSubtle,
+    borderRadius: radius.full,
+    paddingHorizontal: spacing[3],
+    paddingVertical: spacing[1],
+  },
+  addChipText: {
+    fontSize: typography.fontSize.subText,
+    color: colors.textSecondary,
+    fontWeight: typography.fontWeight.medium,
+  },
   advancedPanel: {
     height: 280,
     padding: spacing[3],
@@ -338,6 +492,7 @@ const styles = StyleSheet.create({
   },
   filterSection: {
     marginBottom: spacing[2],
+    zIndex: 1,
   },
   sectionTitle: {
     fontSize: typography.fontSize.small,
@@ -345,9 +500,25 @@ const styles = StyleSheet.create({
     color: colors.textPrimary,
     marginBottom: spacing[1],
   },
-  chipsRow: {
+chipsRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: spacing[2],
+  },
+  countryList: {
+    backgroundColor: colors.backgroundPrimary,
+    borderRadius: spacing[1],
+    borderWidth: 1,
+    borderColor: colors.borderSubtle,
+    marginTop: spacing[1],
+  },
+  countryItem: {
+    padding: spacing[2],
+    borderBottomWidth: 1,
+    borderBottomColor: colors.borderSubtle,
+  },
+  countryText: {
+    fontSize: typography.fontSize.body,
+    color: colors.textPrimary,
   },
 })

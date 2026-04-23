@@ -5,16 +5,18 @@ import { colors, radius, spacing, typography } from '@/src/app/theme/tokens'
 type SearchBarProps = {
   value: string
   onChangeText: (text: string) => void
+  onFocus?: () => void
   placeholder?: string
 }
 
-export function SearchBar({ value, onChangeText, placeholder }: SearchBarProps) {
+export function SearchBar({ value, onChangeText, onFocus, placeholder }: SearchBarProps) {
   return (
     <View style={styles.container}>
       <Ionicons name="search" size={18} color={colors.textSecondary} style={styles.icon} />
       <TextInput
         value={value}
         onChangeText={onChangeText}
+        onFocus={onFocus}
         placeholder={placeholder}
         placeholderTextColor={colors.textSecondary}
         style={styles.input}
