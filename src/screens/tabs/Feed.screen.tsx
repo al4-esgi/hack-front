@@ -1,12 +1,12 @@
+import { useMemo } from 'react'
 import { View, Text, StyleSheet } from 'react-native'
 import { useTikTokHashtags, useInstagramHashtags } from '@/src/hooks/useSocial'
 import { ReelFeed } from '@/src/shared/ui/ReelFeed'
 
 export default function FeedScreen() {
-  // Buscar posts com hashtags padrão
   const tikTokQuery = useTikTokHashtags(
     {
-      tags: ['michelin', 'restaurants'],
+      tags: ['guide michelin'],
       limit: 30,
     },
     true,
@@ -14,7 +14,7 @@ export default function FeedScreen() {
 
   const instagramQuery = useInstagramHashtags(
     {
-      tags: ['michelin', 'restaurants'],
+      tags: ['guide michelin'],
       limit: 30,
     },
     true,
@@ -25,21 +25,14 @@ export default function FeedScreen() {
 
   const isLoading = tikTokLoading || instagramLoading
 
-  // Interleave TikTok and Instagram posts for variety
-  const posts = (() => {
-    const tiktokPosts = tikTokData || []
-    const instagramPosts = instagramData || []
-
-    const interleaved: any[] = []
-    const maxLength = Math.max(tiktokPosts.length, instagramPosts.length)
-
-    for (let i = 0; i < maxLength; i++) {
-      if (i < tiktokPosts.length) interleaved.push(tiktokPosts[i])
-      if (i < instagramPosts.length) interleaved.push(instagramPosts[i])
+  const posts = useMemo(() => {
+    const merged = [...(tikTokData || []), ...(instagramData || [])]
+    for (let i = merged.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1))
+      ;[merged[i], merged[j]] = [merged[j], merged[i]]
     }
-
-    return interleaved
-  })()
+    return merged
+  }, [tikTokData, instagramData])
 
   return isLoading ? (
     <View style={styles.loadingContainer}>
