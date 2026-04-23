@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from 'react'
+import { useCallback, useEffect, useMemo } from 'react'
 import { ActivityIndicator, FlatList, StyleSheet, View } from 'react-native'
 import { useTranslation } from 'react-i18next'
 import { EmptyState, LoadingState, HotelCard, RestaurantCard } from '@/src/shared/ui'
@@ -20,9 +20,10 @@ function interleaveRandomly<T>(arr1: T[], arr2: T[]): T[] {
 
 interface SearchResultListProps {
   query: string
+  onLoadingChange?: (loading: boolean) => void
 }
 
-export function SearchResultList({ query }: SearchResultListProps) {
+export function SearchResultList({ query, onLoadingChange }: SearchResultListProps) {
   const { t } = useTranslation('search')
   const {
     data,
@@ -31,6 +32,10 @@ export function SearchResultList({ query }: SearchResultListProps) {
     hasNextPage,
     isFetchingNextPage,
   } = useInfiniteSearch()
+
+  useEffect(() => {
+    onLoadingChange?.(isLoading)
+  }, [isLoading, onLoadingChange])
 
   const items: SearchItem[] = useMemo(() => {
     if (!data?.pages) return []

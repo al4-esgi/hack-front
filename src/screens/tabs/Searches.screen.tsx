@@ -5,14 +5,15 @@ import { spacing } from '@/src/app/theme/tokens'
 
 export default function SearchesScreen() {
   const [query, setQuery] = useState('')
+  const [isLoading, setIsLoading] = useState(true)
 
   return (
     <Screen>
       <View style={styles.container}>
         <PageHeader title="Recherches" />
-        <SearchFilters query={query} onSearchChange={setQuery} />
+        <SearchFilters query={query} onSearchChange={setQuery} isLoading={isLoading} />
       </View>
-      <SearchResultList query={query} />
+      <SearchResultList query={query} onLoadingChange={setIsLoading} />
     </Screen>
   )
 }

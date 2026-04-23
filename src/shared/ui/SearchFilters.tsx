@@ -23,7 +23,7 @@ interface SearchFiltersProps {
 export function SearchFilters({
   query,
   onSearchChange,
-  isLoading,
+  isLoading = false,
 }: SearchFiltersProps) {
   const { t } = useTranslation('search')
   const [showAdvanced, setShowAdvanced] = useState(false)
@@ -45,6 +45,7 @@ export function SearchFilters({
   const params = useSearchStore((state) => state.params)
   const setParams = useSearchStore((state) => state.setParams)
   const setSearch = useSearchStore((state) => state.setSearch)
+  const clearFilters = useSearchStore((state) => state.clearFilters)
 
   // Autocomplete hooks - enabled by default for dropdown
   const { data: countries } = useCountries(countrySearch, 10, true)
@@ -94,6 +95,20 @@ export function SearchFilters({
     (type: SearchType) => params.types?.includes(type) ?? false,
     [params.types],
   )
+
+  const handleClearFilters = useCallback(() => {
+    clearFilters()
+    setCountrySearch('')
+    setCitySearch('')
+    setSelectedCountryName('')
+    setSelectedCityName('')
+    setAmenitySearch('')
+    setCuisineSearch('')
+    setFacilitySearch('')
+    setSelectedCuisines([])
+    setSelectedFacilities([])
+    setSelectedAmenities([])
+  }, [clearFilters])
 
   // Toggle handler - like other filters
   const handleNearMeToggle = () => {
@@ -178,6 +193,7 @@ export function SearchFilters({
           label={t('filters.closeToMe')}
           active={params.lat !== undefined}
           onPress={handleNearMeToggle}
+          disabled={isLoading}
         />
         {params.lat !== undefined && (
           <>
@@ -185,21 +201,25 @@ export function SearchFilters({
               label="5km"
               active={params.radiusKm === 5}
               onPress={() => handleRadiusChange(5)}
+              disabled={isLoading}
             />
             <FilterChip
               label="10km"
               active={params.radiusKm === 10}
               onPress={() => handleRadiusChange(10)}
+              disabled={isLoading}
             />
             <FilterChip
               label="20km"
               active={params.radiusKm === 20}
               onPress={() => handleRadiusChange(20)}
+              disabled={isLoading}
             />
             <FilterChip
               label="50km"
               active={params.radiusKm === 50}
               onPress={() => handleRadiusChange(50)}
+              disabled={isLoading}
             />
           </>
         )}
@@ -211,6 +231,12 @@ export function SearchFilters({
             <Text style={styles.moreButtonCount}> ({activeFiltersCount})</Text>
           )}
         </Pressable>
+        
+        {activeFiltersCount > 0 && (
+          <Pressable style={styles.clearButton} onPress={handleClearFilters}>
+            <Text style={styles.clearButtonText}>✕ Clear</Text>
+          </Pressable>
+        )}
       </View>
 
       {showAdvanced === true && (
@@ -219,18 +245,66 @@ export function SearchFilters({
           showsVerticalScrollIndicator
           contentContainerStyle={styles.advancedContent}
         >
-            {/* COUNTRY */}
+          {/* COUNTRY */}
+          <View style={styles.filterSection}>
+            <Text style={styles.sectionTitle}>{t('filters.country')}</Text>
+            {params.countryId ? (
+              <View style={styles.selectedContainer}>
+                <FilterChip
+                  label={selectedCountryName}
+                  active={true}
+                  onPress={() => {
+                    setParams({ countryId: undefined, cityId: undefined })
+                    setCountrySearch('')
+                    setSelectedCountryName('')
+                    setCitySearch('')
+                    setSelectedCityName('')
+                  }}
+                />
+              </View>
+            ) : (
+              <AutocompleteFilter
+                data={countries}
+                value={countrySearch}
+                onChangeText={setCountrySearch}
+                selectedIds={params.countryId ? [params.countryId] : undefined}
+                onSelect={(item) => {
+                  setParams({
+                    countryId: item.id,
+                    cityId: undefined,
+                    lat: undefined,
+                    lng: undefined,
+                    radiusKm: undefined,
+                  })
+                  setCountrySearch(item.name)
+                  setSelectedCountryName(item.name)
+                  setCitySearch('')
+                  setSelectedCityName('')
+                }}
+                onRemove={() => {
+                  setParams({ countryId: undefined, cityId: undefined })
+                  setCountrySearch('')
+                  setSelectedCountryName('')
+                  setCitySearch('')
+                  setSelectedCityName('')
+                }}
+                placeholder={t('filters.countryPlaceholder')}
+                loading={countries === undefined}
+              />
+            )}
+          </View>
+
+          {/* CITY */}
+          {params.countryId && (
             <View style={styles.filterSection}>
-              <Text style={styles.sectionTitle}>{t('filters.country')}</Text>
-              {params.countryId ? (
+              <Text style={styles.sectionTitle}>{t('filters.city')}</Text>
+              {params.cityId ? (
                 <View style={styles.selectedContainer}>
                   <FilterChip
-                    label={selectedCountryName}
+                    label={selectedCityName}
                     active={true}
                     onPress={() => {
-                      setParams({ countryId: undefined, cityId: undefined })
-                      setCountrySearch('')
-                      setSelectedCountryName('')
+                      setParams({ cityId: undefined })
                       setCitySearch('')
                       setSelectedCityName('')
                     }}
@@ -238,79 +312,31 @@ export function SearchFilters({
                 </View>
               ) : (
                 <AutocompleteFilter
-                  data={countries}
-                  value={countrySearch}
-                  onChangeText={setCountrySearch}
-                  selectedIds={params.countryId ? [params.countryId] : undefined}
+                  data={cities}
+                  value={citySearch}
+                  onChangeText={setCitySearch}
+                  selectedIds={params.cityId ? [params.cityId] : undefined}
                   onSelect={(item) => {
                     setParams({
-                      countryId: item.id,
-                      cityId: undefined,
+                      cityId: item.id,
                       lat: undefined,
                       lng: undefined,
                       radiusKm: undefined,
                     })
-                    setCountrySearch(item.name)
-                    setSelectedCountryName(item.name)
-                    setCitySearch('')
-                    setSelectedCityName('')
+                    setCitySearch(item.name)
+                    setSelectedCityName(item.name)
                   }}
                   onRemove={() => {
-                    setParams({ countryId: undefined, cityId: undefined })
-                    setCountrySearch('')
-                    setSelectedCountryName('')
+                    setParams({ cityId: undefined })
                     setCitySearch('')
                     setSelectedCityName('')
                   }}
-                  placeholder={t('filters.countryPlaceholder')}
-                  loading={countries === undefined}
+                  placeholder={t('filters.cityPlaceholder')}
+                  loading={cities === undefined}
                 />
               )}
             </View>
-
-            {/* CITY */}
-            {params.countryId && (
-              <View style={styles.filterSection}>
-                <Text style={styles.sectionTitle}>{t('filters.city')}</Text>
-                {params.cityId ? (
-                  <View style={styles.selectedContainer}>
-                    <FilterChip
-                      label={selectedCityName}
-                      active={true}
-                      onPress={() => {
-                        setParams({ cityId: undefined })
-                        setCitySearch('')
-                        setSelectedCityName('')
-                      }}
-                    />
-                  </View>
-                ) : (
-                  <AutocompleteFilter
-                    data={cities}
-                    value={citySearch}
-                    onChangeText={setCitySearch}
-                    selectedIds={params.cityId ? [params.cityId] : undefined}
-                    onSelect={(item) => {
-                      setParams({
-                        cityId: item.id,
-                        lat: undefined,
-                        lng: undefined,
-                        radiusKm: undefined,
-                      })
-                      setCitySearch(item.name)
-                      setSelectedCityName(item.name)
-                    }}
-                    onRemove={() => {
-                      setParams({ cityId: undefined })
-                      setCitySearch('')
-                      setSelectedCityName('')
-                    }}
-                    placeholder={t('filters.cityPlaceholder')}
-                    loading={cities === undefined}
-                  />
-                )}
-              </View>
-            )}
+          )}
 
             {/* PRICE */}
             <View style={styles.filterSection}>
@@ -320,28 +346,36 @@ export function SearchFilters({
                   label={t('filters.price.cheap')}
                   active={params.minPriceLevel === 1}
                   onPress={() =>
-                    setParams({ minPriceLevel: params.minPriceLevel === 1 ? undefined : 1 })
+                    params.minPriceLevel === 1
+                      ? setParams({ minPriceLevel: undefined, maxPriceLevel: undefined })
+                      : setParams({ minPriceLevel: 1, maxPriceLevel: 1 })
                   }
                 />
                 <FilterChip
                   label={t('filters.price.medium')}
                   active={params.minPriceLevel === 2}
                   onPress={() =>
-                    setParams({ minPriceLevel: params.minPriceLevel === 2 ? undefined : 2 })
+                    params.minPriceLevel === 2
+                      ? setParams({ minPriceLevel: undefined, maxPriceLevel: undefined })
+                      : setParams({ minPriceLevel: 2, maxPriceLevel: 2 })
                   }
                 />
                 <FilterChip
                   label={t('filters.price.expensive')}
                   active={params.minPriceLevel === 3}
                   onPress={() =>
-                    setParams({ minPriceLevel: params.minPriceLevel === 3 ? undefined : 3 })
+                    params.minPriceLevel === 3
+                      ? setParams({ minPriceLevel: undefined, maxPriceLevel: undefined })
+                      : setParams({ minPriceLevel: 3, maxPriceLevel: 3 })
                   }
                 />
                 <FilterChip
                   label={t('filters.price.luxury')}
                   active={params.minPriceLevel === 4}
                   onPress={() =>
-                    setParams({ minPriceLevel: params.minPriceLevel === 4 ? undefined : 4 })
+                    params.minPriceLevel === 4
+                      ? setParams({ minPriceLevel: undefined, maxPriceLevel: undefined })
+                      : setParams({ minPriceLevel: 4, maxPriceLevel: 4 })
                   }
                 />
               </View>
@@ -388,128 +422,162 @@ export function SearchFilters({
               </View>
             </View>
 
-            {/* HOTEL */}
+            {/* STARS */}
             <View style={styles.filterSection}>
-              <Text style={styles.sectionTitle}>{t('filters.hotelSpecial')}</Text>
+              <Text style={styles.sectionTitle}>Stars</Text>
               <View style={styles.chipsRow}>
                 <FilterChip
-                  label={t('filters.plus')}
-                  active={params.isPlus === true}
-                  onPress={() => setParams({ isPlus: params.isPlus ? undefined : true })}
-                />
-                <FilterChip
-                  label={t('filters.bookable')}
-                  active={params.bookable === true}
-                  onPress={() => setParams({ bookable: params.bookable ? undefined : true })}
-                />
-                <FilterChip
-                  label={t('filters.sustainable')}
-                  active={params.sustainableHotel === true}
+                  label="1★"
+                  active={params.minStars === 1}
                   onPress={() =>
-                    setParams({
-                      sustainableHotel: params.sustainableHotel ? undefined : true,
-                    })
+                    params.minStars === 1
+                      ? setParams({ minStars: undefined, maxStars: undefined })
+                      : setParams({ minStars: 1, maxStars: 1 })
                   }
                 />
-              </View>
-            </View>
-
-            {/* RESTAURANT */}
-            <View style={styles.filterSection}>
-              <Text style={styles.sectionTitle}>{t('filters.restaurantSpecial')}</Text>
-              <View style={styles.chipsRow}>
                 <FilterChip
-                  label={t('filters.greenStar')}
-                  active={params.greenStar === true}
-                  onPress={() => setParams({ greenStar: params.greenStar ? undefined : true })}
+                  label="2★"
+                  active={params.minStars === 2}
+                  onPress={() =>
+                    params.minStars === 2
+                      ? setParams({ minStars: undefined, maxStars: undefined })
+                      : setParams({ minStars: 2, maxStars: 2 })
+                  }
+                />
+                <FilterChip
+                  label="3★"
+                  active={params.minStars === 3}
+                  onPress={() =>
+                    params.minStars === 3
+                      ? setParams({ minStars: undefined, maxStars: undefined })
+                      : setParams({ minStars: 3, maxStars: 3 })
+                  }
                 />
               </View>
             </View>
 
-            {/* CUISINES */}
-            <View style={styles.filterSection}>
-              <Text style={styles.sectionTitle}>{t('filters.cuisines')}</Text>
-              <AutocompleteFilter
-                data={cuisines}
-                value={cuisineSearch}
-                onChangeText={setCuisineSearch}
-                selectedIds={params.cuisineIds}
-                selectedItemsCache={selectedCuisines}
-                onSelect={(item) => {
-                  const currentIds = params.cuisineIds || []
-                  if (!currentIds.includes(item.id)) {
-                    setParams({ cuisineIds: [...currentIds, item.id] })
-                    setSelectedCuisines([...selectedCuisines, item])
-                  }
-                  setCuisineSearch('')
-                }}
-                onRemove={(id) => {
-                  const newIds = params.cuisineIds?.filter((i) => i !== id)
-                  const newItems = selectedCuisines.filter((i) => i.id !== id)
-                  setParams({ cuisineIds: newIds?.length ? newIds : undefined })
-                  setSelectedCuisines(newItems)
-                }}
-                placeholder={t('filters.cuisinesPlaceholder')}
-                loading={cuisines === undefined}
+          {/* HOTEL */}
+          <View style={styles.filterSection}>
+            <Text style={styles.sectionTitle}>{t('filters.hotelSpecial')}</Text>
+            <View style={styles.chipsRow}>
+              <FilterChip
+                label={t('filters.plus')}
+                active={params.isPlus === true}
+                onPress={() => setParams({ isPlus: params.isPlus ? undefined : true })}
+              />
+              <FilterChip
+                label={t('filters.bookable')}
+                active={params.bookable === true}
+                onPress={() => setParams({ bookable: params.bookable ? undefined : true })}
+              />
+              <FilterChip
+                label={t('filters.sustainable')}
+                active={params.sustainableHotel === true}
+                onPress={() =>
+                  setParams({
+                    sustainableHotel: params.sustainableHotel ? undefined : true,
+                  })
+                }
               />
             </View>
+          </View>
 
-            {/* FACILITIES */}
-            <View style={styles.filterSection}>
-              <Text style={styles.sectionTitle}>{t('filters.facilities')}</Text>
-              <AutocompleteFilter
-                data={facilities}
-                value={facilitySearch}
-                onChangeText={setFacilitySearch}
-                selectedIds={params.facilityIds}
-                selectedItemsCache={selectedFacilities}
-                onSelect={(item) => {
-                  const currentIds = params.facilityIds || []
-                  if (!currentIds.includes(item.id)) {
-                    setParams({ facilityIds: [...currentIds, item.id] })
-                    setSelectedFacilities([...selectedFacilities, item])
-                  }
-                  setFacilitySearch('')
-                }}
-                onRemove={(id) => {
-                  const newIds = params.facilityIds?.filter((i) => i !== id)
-                  const newItems = selectedFacilities.filter((i) => i.id !== id)
-                  setParams({ facilityIds: newIds?.length ? newIds : undefined })
-                  setSelectedFacilities(newItems)
-                }}
-                placeholder={t('filters.facilitiesPlaceholder')}
-                loading={facilities === undefined}
+          {/* RESTAURANT */}
+          <View style={styles.filterSection}>
+            <Text style={styles.sectionTitle}>{t('filters.restaurantSpecial')}</Text>
+            <View style={styles.chipsRow}>
+              <FilterChip
+                label={t('filters.greenStar')}
+                active={params.greenStar === true}
+                onPress={() => setParams({ greenStar: params.greenStar ? undefined : true })}
               />
             </View>
+          </View>
 
-            {/* AMENITIES */}
-            <View style={styles.filterSection}>
-              <Text style={styles.sectionTitle}>{t('filters.amenities')}</Text>
-              <AutocompleteFilter
-                data={amenities}
-                value={amenitySearch}
-                onChangeText={setAmenitySearch}
-                selectedIds={params.amenityIds}
-                selectedItemsCache={selectedAmenities}
-                onSelect={(item) => {
-                  const currentIds = params.amenityIds || []
-                  if (!currentIds.includes(item.id)) {
-                    setParams({ amenityIds: [...currentIds, item.id] })
-                    setSelectedAmenities([...selectedAmenities, item])
-                  }
-                  setAmenitySearch('')
-                }}
-                onRemove={(id) => {
-                  const newIds = params.amenityIds?.filter((i) => i !== id)
-                  const newItems = selectedAmenities.filter((i) => i.id !== id)
-                  setParams({ amenityIds: newIds?.length ? newIds : undefined })
-                  setSelectedAmenities(newItems)
-                }}
-                placeholder={t('filters.amenitiesPlaceholder')}
-                loading={amenities === undefined}
-              />
-            </View>
-          </ScrollView>
+          {/* CUISINES */}
+          <View style={styles.filterSection}>
+            <Text style={styles.sectionTitle}>{t('filters.cuisines')}</Text>
+            <AutocompleteFilter
+              data={cuisines}
+              value={cuisineSearch}
+              onChangeText={setCuisineSearch}
+              selectedIds={params.cuisineIds}
+              selectedItemsCache={selectedCuisines}
+              onSelect={(item) => {
+                const currentIds = params.cuisineIds || []
+                if (!currentIds.includes(item.id)) {
+                  setParams({ cuisineIds: [...currentIds, item.id] })
+                  setSelectedCuisines([...selectedCuisines, item])
+                }
+                setCuisineSearch('')
+              }}
+              onRemove={(id) => {
+                const newIds = params.cuisineIds?.filter((i) => i !== id)
+                const newItems = selectedCuisines.filter((i) => i.id !== id)
+                setParams({ cuisineIds: newIds?.length ? newIds : undefined })
+                setSelectedCuisines(newItems)
+              }}
+              placeholder={t('filters.cuisinesPlaceholder')}
+              loading={cuisines === undefined}
+            />
+          </View>
+
+          {/* FACILITIES */}
+          <View style={styles.filterSection}>
+            <Text style={styles.sectionTitle}>{t('filters.facilities')}</Text>
+            <AutocompleteFilter
+              data={facilities}
+              value={facilitySearch}
+              onChangeText={setFacilitySearch}
+              selectedIds={params.facilityIds}
+              selectedItemsCache={selectedFacilities}
+              onSelect={(item) => {
+                const currentIds = params.facilityIds || []
+                if (!currentIds.includes(item.id)) {
+                  setParams({ facilityIds: [...currentIds, item.id] })
+                  setSelectedFacilities([...selectedFacilities, item])
+                }
+                setFacilitySearch('')
+              }}
+              onRemove={(id) => {
+                const newIds = params.facilityIds?.filter((i) => i !== id)
+                const newItems = selectedFacilities.filter((i) => i.id !== id)
+                setParams({ facilityIds: newIds?.length ? newIds : undefined })
+                setSelectedFacilities(newItems)
+              }}
+              placeholder={t('filters.facilitiesPlaceholder')}
+              loading={facilities === undefined}
+            />
+          </View>
+
+          {/* AMENITIES */}
+          <View style={styles.filterSection}>
+            <Text style={styles.sectionTitle}>{t('filters.amenities')}</Text>
+            <AutocompleteFilter
+              data={amenities}
+              value={amenitySearch}
+              onChangeText={setAmenitySearch}
+              selectedIds={params.amenityIds}
+              selectedItemsCache={selectedAmenities}
+              onSelect={(item) => {
+                const currentIds = params.amenityIds || []
+                if (!currentIds.includes(item.id)) {
+                  setParams({ amenityIds: [...currentIds, item.id] })
+                  setSelectedAmenities([...selectedAmenities, item])
+                }
+                setAmenitySearch('')
+              }}
+              onRemove={(id) => {
+                const newIds = params.amenityIds?.filter((i) => i !== id)
+                const newItems = selectedAmenities.filter((i) => i.id !== id)
+                setParams({ amenityIds: newIds?.length ? newIds : undefined })
+                setSelectedAmenities(newItems)
+              }}
+              placeholder={t('filters.amenitiesPlaceholder')}
+              loading={amenities === undefined}
+            />
+          </View>
+        </ScrollView>
       )}
     </View>
   )
@@ -547,6 +615,19 @@ const styles = StyleSheet.create({
   moreButtonCount: {
     fontSize: typography.fontSize.small,
     color: colors.primary,
+    fontWeight: typography.fontWeight.medium,
+  },
+  clearButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: spacing[2],
+    paddingVertical: spacing[1],
+    borderRadius: spacing[1],
+    backgroundColor: colors.backgroundSubtle,
+  },
+  clearButtonText: {
+    fontSize: typography.fontSize.small,
+    color: colors.textSecondary,
     fontWeight: typography.fontWeight.medium,
   },
   locationChip: {

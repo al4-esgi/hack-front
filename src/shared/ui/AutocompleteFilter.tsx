@@ -35,8 +35,8 @@ export function AutocompleteFilter({
   const [hasSelected, setHasSelected] = useState(false)
   const [lastValidText, setLastValidText] = useState('')
 
-  const selectedItems = selectedItemsCache || (data || []).filter((item) => selectedIds?.includes(item.id))
-
+  const selectedItems =
+    selectedItemsCache || (data || []).filter((item) => selectedIds?.includes(item.id))
 
   // Filter data based on text input - only show if input has text
   const filteredData = (data || [])
@@ -89,8 +89,6 @@ export function AutocompleteFilter({
       }
     }
   }
-
-  console.log(selectedIds, selectedItems)
 
   return (
     <View style={styles.container}>
