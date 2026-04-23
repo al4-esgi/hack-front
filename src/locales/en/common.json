@@ -11,6 +11,8 @@
   "next": "Next",
   "close": "Close",
   "search": "Search",
+  "searchPlaceholder": "Search restaurants...",
+  "noResults": "No results found",
   "nav": {
     "home": "Home",
     "profile": "Profile",
@@ -21,5 +23,37 @@
     "email": "Invalid email address",
     "minLength": "Minimum {{count}} characters",
     "maxLength": "Maximum {{count}} characters"
+  },
+  "awards": {
+    "MICHELIN_STAR": "MICHELIN",
+    "BIB_GOURMAND": "Bib Gourmand",
+    "SELECTED": "Selected",
+    "GREEN_STAR": "Green Star"
+  },
+  "price": {
+    "1": "$",
+    "2": "$$",
+    "3": "$$$",
+    "4": "$$$$"
+  },
+  "stars": "{{count}} star",
+  "stars_plural": "{{count}} stars",
+  "filters": {
+    "title": "Filters",
+    "country": "Country",
+    "city": "City",
+    "cuisine": "Cuisine",
+    "facility": "Facilities",
+    "award": "Award",
+    "price": "Price",
+    "stars": "Stars",
+    "greenStar": "Green Star",
+    "apply": "Apply filters",
+    "clear": "Clear all"
+  },
+  "sort": {
+    "name": "Name",
+    "price": "Price",
+    "rating": "Rating"
   }
 }
