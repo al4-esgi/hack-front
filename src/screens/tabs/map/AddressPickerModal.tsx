@@ -11,6 +11,7 @@ import {
   View,
 } from 'react-native'
 import { colors, radius } from '../../../app/theme/tokens'
+import { SecondaryButton } from '../../../shared/ui'
 import { areCoordinatesClose } from './map.services'
 import type { RouteLocation } from './map.types'
 
@@ -91,9 +92,7 @@ export function AddressPickerModal({
                 )
               })}
             </ScrollView>
-            <Pressable style={styles.closeButton} onPress={onClose}>
-              <Text style={styles.closeLabel}>Fermer</Text>
-            </Pressable>
+            <SecondaryButton label="Fermer" onPress={onClose} />
           </View>
         </View>
       </KeyboardAvoidingView>
@@ -175,19 +174,5 @@ const styles = StyleSheet.create({
   },
   optionLabelActive: {
     color: colors.red,
-  },
-  closeButton: {
-    marginTop: 4,
-    borderWidth: 1,
-    borderColor: colors.borderSubtle,
-    borderRadius: radius.lg,
-    paddingVertical: 10,
-    alignItems: 'center',
-    backgroundColor: colors.backgroundSubtle,
-  },
-  closeLabel: {
-    color: colors.textPrimary,
-    fontSize: 13,
-    fontWeight: '700',
   },
 })

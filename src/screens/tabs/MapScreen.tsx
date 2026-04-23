@@ -21,7 +21,9 @@ import {
 } from '@maplibre/maplibre-react-native'
 import { GestureDetector } from 'react-native-gesture-handler'
 import Animated from 'react-native-reanimated'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { colors, radius } from '../../app/theme/tokens'
+import { DistinctionBadge, MapPin, SecondaryButton } from '../../shared/ui'
 import { AddressPickerModal } from './map/AddressPickerModal'
 import {
   DEFAULT_DESTINATION,
@@ -48,6 +50,7 @@ import { useDraggableSheet } from './map/useDraggableSheet'
 
 export default function MapScreen() {
   const { height: windowHeight } = useWindowDimensions()
+  const insets = useSafeAreaInsets()
   const { sheetAnimatedStyle, sheetGesture } = useDraggableSheet({
     windowHeight,
     collapsedHeight: SHEET_COLLAPSED_HEIGHT,
@@ -293,15 +296,11 @@ export default function MapScreen() {
         </GeoJSONSource>
 
         <Marker id="start-marker" lngLat={toLngLat(origin.coordinate)} anchor="bottom">
-          <View style={[styles.mapPin, styles.mapPinDark]}>
-            <Text style={styles.mapPinLabel}>A</Text>
-          </View>
+          <MapPin label="A" variant="default" />
         </Marker>
 
         <Marker id="end-marker" lngLat={toLngLat(destination.coordinate)} anchor="bottom">
-          <View style={[styles.mapPin, styles.mapPinDark]}>
-            <Text style={styles.mapPinLabel}>B</Text>
-          </View>
+          <MapPin label="B" variant="default" />
         </Marker>
 
         {STOPS.map((stop) => {
@@ -314,15 +313,13 @@ export default function MapScreen() {
               anchor="bottom"
               onPress={() => toggleStop(stop.id)}
             >
-              <View style={[styles.mapPin, selected ? styles.mapPinSelected : styles.mapPinMuted]}>
-                <Text style={styles.mapPinLabel}>{stop.order}</Text>
-              </View>
+              <MapPin label={String(stop.order)} variant={selected ? 'active' : 'muted'} />
             </Marker>
           )
         })}
       </Map>
 
-      <View style={styles.topBarContainer}>
+      <View style={[styles.topBarContainer, { top: insets.top + 10 }]}>
         <View style={styles.topBar}>
           <Pressable style={styles.cityPickerButton} onPress={() => openPicker('origin')}>
             <Text style={styles.topBarCity} numberOfLines={1}>
@@ -369,9 +366,7 @@ export default function MapScreen() {
               </Text>
             )}
 
-            <Pressable style={styles.openNavButton} onPress={openExternalRoute}>
-              <Text style={styles.openNavButtonLabel}>Ouvrir dans une app GPS</Text>
-            </Pressable>
+            <SecondaryButton label="Ouvrir dans une app GPS" onPress={openExternalRoute} />
           </View>
 
           <ScrollView
@@ -390,16 +385,8 @@ export default function MapScreen() {
                 <Text style={styles.cardSub}>{stop.city}</Text>
                 <Text style={styles.cardSubMuted}>{stop.detour}</Text>
                 <View style={styles.badgesRow}>
-                  {stop.badge === 'star' ? (
-                    <View style={[styles.badge, styles.badgeFill]}>
-                      <Text style={styles.badgeFillLabel}>★</Text>
-                    </View>
-                  ) : null}
-                  {stop.badge === 'bib' ? (
-                    <View style={styles.badge}>
-                      <Text style={styles.badgeLabel}>BIB</Text>
-                    </View>
-                  ) : null}
+                  {stop.badge === 'star' ? <DistinctionBadge type="star" /> : null}
+                  {stop.badge === 'bib' ? <DistinctionBadge type="bib" /> : null}
                 </View>
                 <Text style={styles.cardAction}>
                   {selectedStopIds.includes(stop.id) ? 'Retirer du trajet' : 'Ajouter au trajet'}
@@ -462,7 +449,6 @@ const styles = StyleSheet.create({
   },
   topBarContainer: {
     position: 'absolute',
-    top: 10,
     left: 10,
     right: 10,
     zIndex: 3,
@@ -589,22 +575,6 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: colors.textPrimary,
     fontWeight: '600',
-  },
-  openNavButton: {
-    borderWidth: 1,
-    borderColor: colors.borderSubtle,
-    borderRadius: radius.lg,
-    paddingVertical: 10,
-    paddingHorizontal: 12,
-    backgroundColor: colors.backgroundSubtle,
-  },
-  openNavButtonLabel: {
-    color: colors.red,
-    fontSize: 13,
-    fontWeight: '700',
-    textAlign: 'center',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
   },
   cardsRow: {
     gap: 7,

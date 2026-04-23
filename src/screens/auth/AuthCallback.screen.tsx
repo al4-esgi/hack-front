@@ -1,9 +1,9 @@
 import { useEffect } from 'react'
-import { ActivityIndicator, StyleSheet, Text, View } from 'react-native'
 import type { NativeStackScreenProps } from '@react-navigation/native-stack'
-import { AppRoutes } from '../../constants/routes.constant'
-import type { RootStackParamList } from '../../navigation/navigation.types'
-import { useAuthStore } from '../../stores/auth.store'
+import { AppRoutes } from '@/src/constants/routes.constant'
+import type { RootStackParamList } from '@/src/navigation/navigation.types'
+import { useAuthStore } from '@/src/stores/auth.store'
+import { LoadingState, Screen } from '@/src/shared/ui'
 
 type Props = NativeStackScreenProps<RootStackParamList, typeof AppRoutes.AUTH_CALLBACK>
 
@@ -23,23 +23,8 @@ export default function AuthCallbackScreen({ navigation, route }: Props) {
   }, [navigation, route.params, setToken])
 
   return (
-    <View style={styles.container}>
-      <ActivityIndicator size="large" />
-      <Text style={styles.label}>Connexion en cours...</Text>
-    </View>
+    <Screen edges={['top', 'left', 'right', 'bottom']} contentContainerStyle={{ justifyContent: 'center', padding: 16 }}>
+      <LoadingState label="Connexion en cours..." />
+    </Screen>
   )
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 10,
-    backgroundColor: '#ffffff',
-  },
-  label: {
-    color: '#333333',
-    fontSize: 14,
-  },
-})
