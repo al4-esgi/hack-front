@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
+import { StaleTimes } from '../constants/query.constant'
 import { restaurantApi } from '../api/restaurants'
 
 export function useCuisines(q?: string, limit?: number, enabled = true) {
@@ -6,7 +7,7 @@ export function useCuisines(q?: string, limit?: number, enabled = true) {
     queryKey: ['restaurants', 'filters', 'cuisines', q, limit],
     queryFn: () => restaurantApi.getCuisines(q, limit),
     enabled,
-    select: (data) => data,
+    staleTime: StaleTimes.THIRTY_MINUTES,
   })
 }
 
@@ -15,7 +16,7 @@ export function useFacilities(q?: string, limit?: number, enabled = true) {
     queryKey: ['restaurants', 'filters', 'facilities', q, limit],
     queryFn: () => restaurantApi.getFacilities(q, limit),
     enabled,
-    select: (data) => data,
+    staleTime: StaleTimes.THIRTY_MINUTES,
   })
 }
 
@@ -24,6 +25,6 @@ export function useRestaurantDetail(restaurantId: number, enabled = true) {
     queryKey: ['restaurants', 'restaurant', restaurantId],
     queryFn: () => restaurantApi.getById(restaurantId),
     enabled: enabled && !!restaurantId,
-    select: (data) => data,
+    staleTime: StaleTimes.THIRTY_MINUTES,
   })
 }
