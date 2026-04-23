@@ -1,7 +1,24 @@
-import { useQuery } from '@tanstack/react-query'
+import { useInfiniteQuery, useQuery } from '@tanstack/react-query'
 import { StaleTimes } from '../constants/query.constant'
 import { searchApi } from '../api/search'
 import { useSearchStore } from '../stores/search.store'
+
+export function useInfiniteSearch() {
+  const params = useSearchStore((state) => state.params)
+  const setPage = useSearchStore((state) => state.setPage)
+
+  return useInfiniteQuery({
+    queryKey: ['search', params],
+    queryFn: ({ pageParam = 1 }) => searchApi.getSearch({ ...params, page: pageParam }),
+    initialPageParam: 1,
+    staleTime: StaleTimes.FIVE_MINUTES,
+    getNextPageParam: (lastPage) => {
+      const { currentPage, itemsPerPage, totalPagesCount } = lastPage.meta
+      const hasMore = currentPage < totalPagesCount
+      return hasMore ? currentPage + 1 : undefined
+    },
+  })
+}
 
 export function useSearch() {
   const params = useSearchStore((state) => state.params)

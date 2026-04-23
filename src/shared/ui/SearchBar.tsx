@@ -1,62 +1,46 @@
-import { Pressable, StyleSheet, View } from 'react-native'
-import { TextField } from './TextField'
-import { colors } from '@/src/app/theme/tokens'
+import { StyleSheet, TextInput, View } from 'react-native'
+import { Ionicons } from '@expo/vector-icons'
+import { colors, radius, spacing, typography } from '@/src/app/theme/tokens'
 
 type SearchBarProps = {
   value: string
-  onChangeText: (value: string) => void
+  onChangeText: (text: string) => void
   placeholder?: string
-  onClear?: () => void
 }
 
-export function SearchBar({
-  value,
-  onChangeText,
-  placeholder = 'Rechercher...',
-  onClear,
-}: SearchBarProps) {
+export function SearchBar({ value, onChangeText, placeholder }: SearchBarProps) {
   return (
     <View style={styles.container}>
-      <TextField
-        label="Recherche"
+      <Ionicons name="search" size={18} color={colors.textSecondary} style={styles.icon} />
+      <TextInput
         value={value}
         onChangeText={onChangeText}
         placeholder={placeholder}
-        autoCapitalize="none"
-        autoCorrect={false}
+        placeholderTextColor={colors.textSecondary}
+        style={styles.input}
       />
-      {value.trim() && onClear ? (
-        <Pressable style={styles.clearButton} onPress={onClear} accessibilityLabel="Effacer la recherche">
-          <View style={styles.clearLine} />
-          <View style={[styles.clearLine, styles.clearLineInverse]} />
-        </Pressable>
-      ) : null}
     </View>
   )
 }
 
 const styles = StyleSheet.create({
   container: {
-    position: 'relative',
-  },
-  clearButton: {
-    position: 'absolute',
-    right: 14,
-    top: 38,
-    width: 14,
-    height: 14,
+    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: colors.backgroundPrimary,
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    borderColor: colors.borderSubtle,
+    paddingHorizontal: spacing[3],
+    paddingVertical: spacing[2],
   },
-  clearLine: {
-    position: 'absolute',
-    width: 12,
-    height: 1.5,
-    backgroundColor: colors.textSecondary,
-    borderRadius: 2,
-    transform: [{ rotate: '45deg' }],
+  icon: {
+    marginRight: spacing[2],
   },
-  clearLineInverse: {
-    transform: [{ rotate: '-45deg' }],
+  input: {
+    flex: 1,
+    fontSize: typography.fontSize.body,
+    color: colors.textPrimary,
+    padding: 0,
   },
 })

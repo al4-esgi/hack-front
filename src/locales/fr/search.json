@@ -1,0 +1,38 @@
+{
+  "title": "Recherches",
+  "subtitle": "Lance une recherche et retrouve des suggestions rapides.",
+  "placeholder": "Rechercher un lieu, un restaurant...",
+  "loading": "Chargement...",
+  "empty": "Aucun résultat pour cette recherche.",
+  "noResults": "Aucun restaurant trouvé pour cette recherche.",
+  "filters": {
+    "restaurant": "Restaurant",
+    "hotel": "Hôtel",
+    "closeToMe": "Près de moi",
+    "more": "Filtres",
+    "priceRange": "Prix",
+    "price": {
+      "cheap": "€",
+      "medium": "€€",
+      "expensive": "€€€",
+      "luxury": "€€€€"
+    },
+    "awards": "Distinctions",
+    "star": "Etoile",
+    "bibGourmand": "Bib",
+    "selected": "Sélection",
+    "stars": "Etoiles",
+    "hotelSpecial": "Hôtels",
+    "restaurantSpecial": "Restaurants",
+    "plus": "Plus",
+    "bookable": "Réserver",
+    "sustainable": "Eco",
+    "greenStar": "Vert",
+    "location": "Localisation",
+    "locationPlaceholder": "Ville ou pays...",
+    "cuisines": "Cuisines",
+    "cuisinesPlaceholder": "Rechercher des cuisines...",
+    "facilities": "Équipements",
+    "facilitiesPlaceholder": "Rechercher des équipements..."
+  }
+}

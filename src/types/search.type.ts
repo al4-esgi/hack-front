@@ -32,6 +32,7 @@ export interface GetSearchParams extends QueryParams {
   // Location filters
   countryId?: number
   cityId?: number
+  location?: string
   
   // Geo search
   lat?: number
@@ -54,6 +55,11 @@ export interface GetSearchParams extends QueryParams {
   greenStar?: boolean
   minPriceLevel?: number
   maxPriceLevel?: PriceLevel
+  
+  // Advanced filters
+  priceMin?: number
+  priceMax?: number
+  rating?: number
 }
 
 export interface SearchResponse {

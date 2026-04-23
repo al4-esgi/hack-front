@@ -1,71 +1,82 @@
+import { useState } from 'react'
 import { Pressable, StyleSheet, View } from 'react-native'
 import { Text } from '@/components/ui/text'
-import { colors, radius } from '@/src/app/theme/tokens'
-import { DistinctionBadge, type DistinctionType } from './DistinctionBadge'
+import { colors, radius, spacing, typography } from '@/src/app/theme/tokens'
+import { DistinctionBadge } from './DistinctionBadge'
 import { FavoriteButton } from './FavoriteButton'
 import { LocationMeta } from './LocationMeta'
-import { PriceRange } from './PriceRange'
+import type { Restaurant } from '@/src/types/restaurant.type'
 
 type RestaurantCardProps = {
-  name: string
-  description?: string
-  cuisine?: string
-  city: string
-  area?: string
-  priceLevel?: 1 | 2 | 3 | 4
-  distinctions?: DistinctionType[]
+  restaurant: Restaurant
   isFavorite?: boolean
   onToggleFavorite?: () => void
   onPress?: () => void
 }
 
 export function RestaurantCard({
-  name,
-  description,
-  cuisine,
-  city,
-  area,
-  priceLevel = 2,
-  distinctions = [],
+  restaurant,
   isFavorite = false,
   onToggleFavorite,
   onPress,
 }: RestaurantCardProps) {
+  const [expanded, setExpanded] = useState(false)
+
   return (
     <Pressable
       style={styles.card}
       onPress={onPress}
       disabled={!onPress}
       accessibilityRole={onPress ? 'button' : undefined}
-      accessibilityLabel={name}
+      accessibilityLabel={restaurant.name}
     >
       <View style={styles.header}>
-        <Text style={styles.title}>{name}</Text>
+        <Text style={styles.title}>{restaurant.name}</Text>
         {onToggleFavorite ? (
           <FavoriteButton active={isFavorite} onPress={onToggleFavorite} />
         ) : null}
       </View>
       <View style={styles.badges}>
-        {distinctions.map((badge) => (
-          <DistinctionBadge key={`${name}-${badge}`} type={badge} />
-        ))}
+        {restaurant.awardCode && (
+          <DistinctionBadge type={restaurant.awardCode} stars={restaurant.stars} />
+        )}
+        {restaurant.hasGreenStar && <DistinctionBadge type="GREEN_STAR" />}
       </View>
-      {cuisine ? <Text style={styles.meta}>{cuisine}</Text> : null}
-      <LocationMeta city={city} area={area} />
-      <PriceRange level={priceLevel} />
-      {description ? <Text style={styles.description}>{description}</Text> : null}
+      {restaurant.cuisines.length > 0 && (
+        <Text style={styles.meta}>{restaurant.cuisines.join(', ')}</Text>
+      )}
+      <LocationMeta city={restaurant.city} area={restaurant.address} country={restaurant.country} />
+      {restaurant.description ? (
+        <Pressable onPress={() => setExpanded(!expanded)}>
+          <Text style={styles.description} numberOfLines={expanded ? undefined : 2}>
+            {restaurant.description}
+          </Text>
+          <Text style={styles.readMore}>{expanded ? 'Voir moins' : 'Lire la suite'}</Text>
+        </Pressable>
+      ) : null}
     </Pressable>
   )
 }
 
 const styles = StyleSheet.create({
-  card: {
+card: {
     borderWidth: 1,
     borderColor: colors.borderSubtle,
     borderRadius: radius.lg,
     backgroundColor: colors.backgroundPrimary,
-    padding: 12,
-    gap: 6,
+    padding: spacing[3],
+    gap: spacing[1],
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: spacing[2],
+  },
+  badges: {
+    flexDirection: 'row',
+    gap: spacing[1],
+    minHeight: 24,
+    alignItems: 'center',
   },
   header: {
     flexDirection: 'row',
@@ -75,9 +86,9 @@ const styles = StyleSheet.create({
   title: {
     flex: 1,
     color: colors.textPrimary,
-    fontSize: 18,
-    lineHeight: 24,
-    fontWeight: '700',
+    fontSize: typography.fontSize.title,
+    lineHeight: typography.lineHeight.title,
+    fontWeight: typography.fontWeight.bold,
   },
   badges: {
     flexDirection: 'row',
@@ -87,15 +98,20 @@ const styles = StyleSheet.create({
   },
   meta: {
     color: colors.textSecondary,
-    fontSize: 12,
-    lineHeight: 16,
+    fontSize: typography.fontSize.small,
+    lineHeight: typography.lineHeight.small,
     textTransform: 'uppercase',
     letterSpacing: 0.4,
   },
   description: {
-    marginTop: 2,
     color: colors.textSecondary,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: typography.fontSize.body,
+    lineHeight: typography.lineHeight.body,
+  },
+  readMore: {
+    color: colors.primary,
+    fontSize: typography.fontSize.subText,
+    fontWeight: typography.fontWeight.semibold,
+    marginTop: 4,
   },
 })

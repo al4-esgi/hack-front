@@ -33,7 +33,6 @@ const defaultParams: GetSearchParams = {
   pageSize: 20,
   sortBy: 'name',
   sortDirection: 'ASC',
-  types: ['restaurant'],
 }
 
 export const useSearchStore = create<SearchState>((set) => ({
