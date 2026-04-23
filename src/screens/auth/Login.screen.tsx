@@ -9,7 +9,7 @@ import { AppRoutes } from '../../constants/routes.constant'
 import { useAuthStore } from '../../stores/auth.store'
 import type { RootStackParamList } from '../../navigation/navigation.types'
 import {
-  buildWebAuthCallbackUrl,
+  APP_AUTH_SESSION_RETURN_URL,
   buildGoogleSsoUrl,
   extractJwtFromAuthCallbackUrl,
 } from '../../utils/google-sso'
@@ -33,14 +33,13 @@ export default function Login({ navigation }: Props) {
   }
 
   const handleGoogleLogin = async () => {
-    const redirectUri = buildWebAuthCallbackUrl(process.env.EXPO_PUBLIC_API_HOST)
     const googleSsoUrl = buildGoogleSsoUrl(process.env.EXPO_PUBLIC_API_HOST)
-    if (!googleSsoUrl || !redirectUri) {
+    if (!googleSsoUrl) {
       Alert.alert('Configuration manquante', 'EXPO_PUBLIC_API_HOST est manquant.')
       return
     }
 
-    const result = await WebBrowser.openAuthSessionAsync(googleSsoUrl, redirectUri)
+    const result = await WebBrowser.openAuthSessionAsync(googleSsoUrl, APP_AUTH_SESSION_RETURN_URL)
     if (result.type !== 'success' || !result.url) {
       return
     }
