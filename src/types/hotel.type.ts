@@ -18,5 +18,5 @@ export type Hotel = {
   sustainableHotel: boolean
   bookable: boolean
   amenities: string[]
-  distanceMeters: number
+  distanceMeters: number | null
 }

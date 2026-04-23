@@ -40,9 +40,10 @@ export interface Restaurant {
   city: string
   country: string
   awardCode: AwardCode
-  stars: number
+  stars: number | null
   hasGreenStar: boolean
   cuisines: string[]
   facilities: string[]
   priceLevel: PriceLevel
+  distanceMeters: number | null
 }

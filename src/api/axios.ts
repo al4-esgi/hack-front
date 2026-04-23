@@ -6,6 +6,7 @@ const apiClient = axios.create({
   baseURL: process.env.EXPO_PUBLIC_API_HOST,
   headers: {
     'Content-Type': 'application/json',
+    Accept: 'application/json',
   },
 })
 
