@@ -5,6 +5,7 @@ import type { Distinction } from '@/src/types/hotel.type'
 
 export type RestaurantDistinctionType = AwardCode | 'GREEN_STAR'
 export type HotelDistinctionType = Distinction | 'PLUS' | 'SUSTAINABLE'
+export type DistinctionType = RestaurantDistinctionType | HotelDistinctionType
 
 type DistinctionBadgeProps = {
   type: RestaurantDistinctionType | HotelDistinctionType

@@ -1,10 +1,14 @@
-import { useState } from 'react'
-import { Image, StyleSheet, View } from 'react-native'
+import React, { useState } from 'react'
+import { Image, Pressable, StyleSheet, View } from 'react-native'
+import { useNavigation } from '@react-navigation/native'
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack'
 import { useQuery } from '@tanstack/react-query'
 import { Text } from '@/components/ui/text'
 import { createUserList, getCurrentUser, getUserLists, type UserList } from '@/src/api/users.api'
 import { colors, radius } from '@/src/app/theme/tokens'
 import { StaleTimes } from '@/src/constants/query.constant'
+import { AppRoutes } from '@/src/constants/routes.constant'
+import type { RootStackParamList } from '@/src/navigation/navigation.types'
 import { useAuthStore } from '@/src/stores/auth.store'
 import {
   EmptyState,
@@ -24,6 +28,7 @@ type ProfileScreenProps = {
   isAuthenticated: boolean
   onRequestLogin: () => void
 }
+type RootNavigation = NativeStackNavigationProp<RootStackParamList>
 
 const TASTE_CHIPS = ['Bistrot', 'Produits frais', 'Vin nature', '< 40€', 'Terrasse', 'Asiatique']
 
@@ -57,6 +62,7 @@ function buildCollectionItem(list: UserList, icon: string, titleOverride?: strin
 }
 
 export default function ProfileScreen({ isAuthenticated, onRequestLogin }: ProfileScreenProps) {
+  const navigation = useNavigation<RootNavigation>()
   const clearToken = useAuthStore((state) => state.clearToken)
   const token = useAuthStore((state) => state.token)
   const [activeCollectionTab, setActiveCollectionTab] = useState<CollectionTabKey>('visited')
@@ -70,6 +76,7 @@ export default function ProfileScreen({ isAuthenticated, onRequestLogin }: Profi
     queryFn: getCurrentUser,
     enabled: isAuthenticated && Boolean(token),
     staleTime: StaleTimes.FIVE_MINUTES,
+    refetchOnMount: 'always',
   })
 
   const {
@@ -82,6 +89,7 @@ export default function ProfileScreen({ isAuthenticated, onRequestLogin }: Profi
     queryFn: () => getUserLists(currentUser!.id),
     enabled: isAuthenticated && Boolean(token) && Boolean(currentUser?.id),
     staleTime: StaleTimes.ONE_MINUTE,
+    refetchOnMount: 'always',
   })
 
   if (!isAuthenticated) {
@@ -269,18 +277,38 @@ export default function ProfileScreen({ isAuthenticated, onRequestLogin }: Profi
           ) : null}
           {!isLoading && !isListsLoading && !isError && !isListsError
             ? displayedCollections.map((collection) => (
-              <View key={`${activeCollectionTab}-${collection.id}`} style={styles.listRow}>
-                <View style={styles.listIconBox}>
-                  <Text style={styles.listIcon}>{collection.icon}</Text>
+              <Pressable
+                key={`${activeCollectionTab}-${collection.id}`}
+                style={({ pressed }) => [
+                  styles.listCard,
+                  pressed ? styles.listCardPressed : undefined,
+                ]}
+                onPress={() => {
+                  if (!currentUser?.id) {
+                    return
+                  }
+
+                  navigation.navigate(AppRoutes.USER_LIST_RESTAURANTS, {
+                    userId: currentUser.id,
+                    listId: collection.id,
+                    listTitle: collection.title,
+                  })
+                }}
+              >
+                <View style={styles.listCardHeader}>
+                  <View style={styles.listCardTitleRow}>
+                    <View style={styles.listIconBox}>
+                      <Text style={styles.listIcon}>{collection.icon}</Text>
+                    </View>
+                    <Text style={styles.listTitle}>{collection.title}</Text>
+                  </View>
+                  <Text style={styles.listChevron}>›</Text>
                 </View>
-                <View style={styles.listTexts}>
-                  <Text style={styles.listTitle}>{collection.title}</Text>
-                  <Text style={styles.listSub}>
-                    {collection.count} {collection.count > 1 ? 'lieux' : 'lieu'}
-                  </Text>
-                </View>
-                <Text style={styles.listChevron}>›</Text>
-              </View>
+                <Text style={styles.listCount}>
+                  {collection.count} {collection.count > 1 ? 'lieux' : 'lieu'}
+                </Text>
+                <Text style={styles.listOpenHint}>Voir le contenu</Text>
+              </Pressable>
             ))
             : null}
         </View>
@@ -375,17 +403,40 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   listWrapper: {
-    gap: 8,
-  },
-  listRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
     borderWidth: 1,
     borderColor: colors.borderSubtle,
     borderRadius: radius.lg,
-    padding: 8,
     backgroundColor: colors.backgroundSubtle,
+    padding: 8,
+    gap: 8,
+  },
+  listCard: {
+    borderWidth: 1,
+    borderColor: 'rgb(205, 205, 205)',
+    borderRadius: radius.lg,
+    padding: 10,
+    backgroundColor: colors.backgroundPrimary,
+    gap: 6,
+    shadowColor: 'rgb(25, 25, 25)',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.18,
+    shadowRadius: 8,
+    elevation: 6,
+  },
+  listCardPressed: {
+    opacity: 0.82,
+  },
+  listCardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 10,
+  },
+  listCardTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    flex: 1,
   },
   listIconBox: {
     width: 36,
@@ -400,19 +451,22 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: colors.textSecondary,
   },
-  listTexts: {
-    flex: 1,
-  },
   listTitle: {
     fontSize: 15,
     color: colors.textPrimary,
     fontWeight: '700',
+    flex: 1,
   },
-  listSub: {
+  listCount: {
     fontSize: 10,
     color: colors.textSecondary,
     textTransform: 'uppercase',
     letterSpacing: 0.4,
+  },
+  listOpenHint: {
+    fontSize: 12,
+    color: colors.primary,
+    fontWeight: '600',
   },
   listChevron: {
     fontSize: 16,

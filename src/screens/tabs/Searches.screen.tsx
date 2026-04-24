@@ -1,9 +1,14 @@
-import { useState } from 'react'
+import React, { useState } from 'react'
 import { StyleSheet, View } from 'react-native'
 import { PageHeader, Screen, SearchResultList, SearchFilters } from '@/src/shared/ui'
 import { spacing } from '@/src/app/theme/tokens'
 
-export default function SearchesScreen() {
+type SearchesScreenProps = {
+  isAuthenticated: boolean
+  onRequestLogin: () => void
+}
+
+export default function SearchesScreen({ isAuthenticated, onRequestLogin }: SearchesScreenProps) {
   const [query, setQuery] = useState('')
   const [isLoading, setIsLoading] = useState(true)
 
@@ -13,7 +18,12 @@ export default function SearchesScreen() {
         <PageHeader title="Recherches" />
         <SearchFilters query={query} onSearchChange={setQuery} isLoading={isLoading} />
       </View>
-      <SearchResultList query={query} onLoadingChange={setIsLoading} />
+      <SearchResultList
+        query={query}
+        onLoadingChange={setIsLoading}
+        isAuthenticated={isAuthenticated}
+        onRequestLogin={onRequestLogin}
+      />
     </Screen>
   )
 }

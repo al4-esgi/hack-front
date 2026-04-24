@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import React, { useState } from 'react'
 import { Pressable, StyleSheet, Text, View } from 'react-native'
 import type { NativeStackScreenProps } from '@react-navigation/native-stack'
 import { colors, radius } from '@/src/app/theme/tokens'
@@ -36,7 +36,7 @@ export default function MainTabsScreen({ navigation }: Props) {
       case 'map':
         return <MapScreen />
       case 'searches':
-        return <SearchesScreen />
+        return <SearchesScreen isAuthenticated={isAuthenticated} onRequestLogin={handleRequestLogin} />
       case 'saved':
         return <SavedScreen isAuthenticated={isAuthenticated} onRequestLogin={handleRequestLogin} />
       case 'profile':

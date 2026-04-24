@@ -29,6 +29,7 @@ export interface RestaurantDetail extends Restaurant {
 export interface Restaurant {
   id: number
   name: string
+  images?: string[]
   address: string
   description: string | null
   sourceUrl: string

@@ -3,6 +3,7 @@ export type Distinction = '1_KEY' | '2_KEY' | '3_KEY'
 export type Hotel = {
   id: number
   name: string
+  images?: string[]
   address: string
   content: string
   canonicalUrl: string
@@ -13,7 +14,7 @@ export type Hotel = {
   city: string
   country: string
   createdAt: string
-  distinctions: Distinction
+  distinctions: Distinction | null
   isPlus: boolean
   sustainableHotel: boolean
   bookable: boolean

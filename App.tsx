@@ -1,4 +1,4 @@
-import { Suspense, useEffect, useState } from 'react'
+import React, { Suspense, useEffect, useState } from 'react'
 import { ActivityIndicator, StyleSheet, View } from 'react-native'
 import {
   NavigationContainer,
@@ -69,6 +69,21 @@ const linking: LinkingOptions<RootStackParamList> = {
           token: (value: string) => value,
           access_token: (value: string) => value,
         },
+      },
+      [AppRoutes.RESTAURANT_DETAILS]: {
+        path: 'restaurants/:restaurantId',
+        parse: {
+          restaurantId: (value: string) => Number(value),
+        },
+      },
+      [AppRoutes.HOTEL_DETAILS]: {
+        path: 'hotels/:hotelId',
+        parse: {
+          hotelId: (value: string) => Number(value),
+        },
+      },
+      [AppRoutes.USER_LIST_RESTAURANTS]: {
+        path: 'lists/:listId',
       },
       [AppRoutes.NOT_FOUND]: '*',
     },

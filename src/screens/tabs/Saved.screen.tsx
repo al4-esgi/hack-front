@@ -1,38 +1,76 @@
-import { useCallback, useRef, useState } from 'react'
+import React, { useCallback, useRef, useState } from 'react'
 import { FlatList, StyleSheet, View, type ViewToken } from 'react-native'
+import { useNavigation } from '@react-navigation/native'
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { getRestaurantById, type RestaurantDetails } from '@/src/api/restaurants.api'
-import { getCurrentUser, getUserListRestaurantsByName, type UserListRestaurant } from '@/src/api/users.api'
+import { getCurrentUser, getUserListItemsByName, type UserListItem } from '@/src/api/users.api'
 import { colors } from '@/src/app/theme/tokens'
 import { StaleTimes } from '@/src/constants/query.constant'
+import { AppRoutes } from '@/src/constants/routes.constant'
+import type { RootStackParamList } from '@/src/navigation/navigation.types'
 import { useAuthStore } from '@/src/stores/auth.store'
+import { AwardCode, PriceLevel, type Restaurant } from '@/src/types/restaurant.type'
 import { EmptyState, ErrorState, LoadingState, PageHeader, RestaurantCard, Screen } from '@/src/shared/ui'
 
 type SavedScreenProps = {
   isAuthenticated: boolean
   onRequestLogin: () => void
 }
+type RootNavigation = NativeStackNavigationProp<RootStackParamList>
 
-function getAreaFromAddress(address: string | null) {
-  if (!address) {
-    return undefined
+function toAwardCode(details: RestaurantDetails | undefined): AwardCode {
+  if (!details) {
+    return AwardCode.Selected
   }
 
-  const segments = address
-    .split(',')
-    .map((part) => part.trim())
-    .filter(Boolean)
-
-  if (segments.length >= 2) {
-    return segments[1]
+  if (details.distinctions.includes('star')) {
+    return AwardCode.MichelinStar
+  }
+  if (details.distinctions.includes('bib')) {
+    return AwardCode.BibGourmand
   }
 
-  return segments[0]
+  return AwardCode.Selected
+}
+
+function toPriceLevel(value: number | undefined): PriceLevel {
+  if (value === 1 || value === 2 || value === 3 || value === 4) {
+    return value
+  }
+
+  return PriceLevel.Moderate
+}
+
+function buildRestaurantCardModel(item: UserListItem, details: RestaurantDetails | undefined): Restaurant {
+  return {
+    id: Number(item.itemId),
+    name: details?.name ?? item.name,
+    images: details?.images ?? [],
+    address: item.address ?? '',
+    description: details?.description ?? null,
+    sourceUrl: '',
+    websiteUrl: null,
+    latitude: '',
+    longitude: '',
+    phoneNumber: null,
+    createdAt: item.addedAt ?? new Date().toISOString(),
+    city: details?.city ?? item.city ?? item.country ?? 'Ville inconnue',
+    country: item.country ?? '',
+    awardCode: toAwardCode(details),
+    stars: details?.distinctions.includes('star') ? 1 : null,
+    hasGreenStar: details?.distinctions.includes('green-star') ?? false,
+    cuisines: details?.cuisine ? [details.cuisine] : [],
+    facilities: [],
+    priceLevel: toPriceLevel(details?.priceLevel),
+    distanceMeters: null,
+  }
 }
 
 const VIEWABILITY_CONFIG = { itemVisiblePercentThreshold: 10 }
 
 export default function SavedScreen({ isAuthenticated, onRequestLogin }: SavedScreenProps) {
+  const navigation = useNavigation<RootNavigation>()
   const token = useAuthStore((state) => state.token)
   const queryClient = useQueryClient()
   const inFlightDetails = useRef(new Set<string>())
@@ -99,6 +137,7 @@ export default function SavedScreen({ isAuthenticated, onRequestLogin }: SavedSc
     queryFn: getCurrentUser,
     enabled: isAuthenticated && Boolean(token),
     staleTime: StaleTimes.FIVE_MINUTES,
+    refetchOnMount: 'always',
   })
 
   const {
@@ -108,15 +147,16 @@ export default function SavedScreen({ isAuthenticated, onRequestLogin }: SavedSc
     refetch: refetchLikedList,
   } = useQuery({
     queryKey: ['saved-liked-list', currentUser?.id],
-    queryFn: () => getUserListRestaurantsByName(currentUser!.id, 'liked'),
+    queryFn: () => getUserListItemsByName(currentUser!.id, 'liked'),
     enabled: isAuthenticated && Boolean(token) && Boolean(currentUser?.id),
     staleTime: StaleTimes.ONE_MINUTE,
+    refetchOnMount: 'always',
   })
 
-  const likedRestaurants = likedList?.restaurants
+  const likedRestaurants = (likedList?.items ?? []).filter((item) => item.itemType === 'restaurant')
 
   const onViewableItemsChanged = useCallback(
-    ({ viewableItems }: { viewableItems: Array<ViewToken<UserListRestaurant>> }) => {
+    ({ viewableItems }: { viewableItems: Array<ViewToken<UserListItem>> }) => {
       const restaurants = likedRestaurants ?? []
       const restaurantIdsToPrefetch: string[] = []
 
@@ -126,7 +166,7 @@ export default function SavedScreen({ isAuthenticated, onRequestLogin }: SavedSc
           continue
         }
 
-        restaurantIdsToPrefetch.push(current.id)
+        restaurantIdsToPrefetch.push(current.itemId)
 
         if (typeof viewableItem.index === 'number') {
           const next = restaurants[viewableItem.index + 1]
@@ -175,7 +215,7 @@ export default function SavedScreen({ isAuthenticated, onRequestLogin }: SavedSc
         {!isLoading && !isCurrentUserError && !isLikedError ? (
           <FlatList
             data={likedRestaurants ?? []}
-            keyExtractor={(item) => item.id}
+            keyExtractor={(item) => `${item.itemType}-${item.itemId}`}
             showsVerticalScrollIndicator={false}
             style={styles.list}
             contentContainerStyle={styles.listContent}
@@ -186,17 +226,15 @@ export default function SavedScreen({ isAuthenticated, onRequestLogin }: SavedSc
             maxToRenderPerBatch={4}
             windowSize={5}
             renderItem={({ item }) => {
-              const details = restaurantDetailsById[item.id]
+              const details = restaurantDetailsById[item.itemId]
+              const restaurant = buildRestaurantCardModel(item, details)
 
               return (
                 <RestaurantCard
-                  name={details?.name ?? item.name}
-                  city={details?.city ?? item.city ?? item.country ?? 'Ville inconnue'}
-                  area={details?.area ?? getAreaFromAddress(item.address)}
-                  cuisine={details?.cuisine ?? undefined}
-                  description={details?.description ?? undefined}
-                  distinctions={details?.distinctions ?? []}
-                  priceLevel={details?.priceLevel ?? 2}
+                  restaurant={restaurant}
+                  onPress={() =>
+                    navigation.navigate(AppRoutes.RESTAURANT_DETAILS, { restaurantId: restaurant.id })
+                  }
                 />
               )
             }}
@@ -218,7 +256,7 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 16,
     gap: 12,
-    backgroundColor: colors.backgroundPrimary,
+    backgroundColor: colors.backgroundSubtle,
   },
   list: {
     flex: 1,

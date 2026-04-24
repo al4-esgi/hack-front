@@ -1,4 +1,5 @@
 import apiClient from './axios'
+import { extractImageUrls } from '@/src/utils/entity-images'
 
 export type RestaurantDistinction = 'star' | 'bib' | 'green-star' | 'key'
 
@@ -25,6 +26,10 @@ type RestaurantDetailsResponse = {
   bib?: boolean | null
   greenStar?: boolean | null
   key?: boolean | null
+  images?: unknown[] | null
+  imageUrls?: unknown[] | null
+  photos?: unknown[] | null
+  gallery?: unknown[] | null
 }
 
 export type RestaurantDetails = {
@@ -36,6 +41,7 @@ export type RestaurantDetails = {
   cuisine: string | null
   priceLevel: 1 | 2 | 3 | 4
   distinctions: RestaurantDistinction[]
+  images: string[]
 }
 
 function toPriceLevel(value: number | string | null | undefined): 1 | 2 | 3 | 4 {
@@ -138,5 +144,6 @@ export async function getRestaurantById(restaurantId: string | number): Promise<
     cuisine: data.cuisine ?? data.cuisineType ?? null,
     priceLevel: toPriceLevel(data.priceLevel ?? data.price_level ?? data.priceRange),
     distinctions: toDistinctions(data),
+    images: extractImageUrls(data),
   }
 }
